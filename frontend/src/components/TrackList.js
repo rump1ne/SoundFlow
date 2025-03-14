@@ -1,13 +1,31 @@
 import React from 'react';
-import Player from './Player';
+import axios from 'axios';
+import Comments from './Comments';
 
-const TrackList = ({ tracks }) => {
+const TrackList = ({ tracks, token }) => {
+    const likeTrack = async (trackId) => {
+        try {
+            await axios.post(`http://localhost:8000/api/tracks/${trackId}/like/`, {}, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            alert('Track like status changed!');
+        } catch (error) {
+            console.error('Error liking track', error);
+        }
+    };
+
     return (
         <div>
             <h2>Track List</h2>
-            {tracks.map(track => (
-                <Player key={track.id} track={track} />
-            ))}
+            <ul>
+                {tracks.map(track => (
+                    <li key={track.id}>
+                        {track.title} - {track.artist}
+                        <button onClick={() => likeTrack(track.id)}>Like</button>
+                        <Comments trackId={track.id} token={token} />
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 };

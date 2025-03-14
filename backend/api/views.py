@@ -3,8 +3,14 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
-from .models import Track, Playlist
+from .models import Track, Playlist, ListeningHistory, UserSubscription
 from .serializers import TrackSerializer, PlaylistSerializer
+from django.db.models import Count
+
+class TrackViewSet(viewsets.ModelViewSet):
+    queryset = Track.objects.all()
+    serializer_class = TrackSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class TrackViewSet(viewsets.ModelViewSet):
     queryset = Track.objects.all()
@@ -21,20 +27,32 @@ class PlaylistViewSet(viewsets.ModelViewSet):
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
-def add_track_to_playlist(request, playlist_id):
-    playlist = Playlist.objects.get(id=playlist_id)
-    track_id = request.data.get('track_id')
-    track = Track.objects.get(id=track_id)
-    playlist.tracks.add(track)
-    return Response({'message': 'Track added successfully'}, status=status.HTTP_200_OK)
+def follow_user(request, user_id):
+    follower = request.user
+    following = User.objects.get(id=user_id)
+    if UserSubscription.objects.filter(follower=follower, following=following).exists():
+        return Response({'message': 'Already following'}, status=status.HTTP_400_BAD_REQUEST)
+    UserSubscription.objects.create(follower=follower, following=following)
+    return Response({'message': 'Now following user'}, status=status.HTTP_200_OK)
 
 @api_view(['DELETE'])
 @permission_classes([permissions.IsAuthenticated])
-def remove_track_from_playlist(request, playlist_id, track_id):
-    playlist = Playlist.objects.get(id=playlist_id)
-    track = Track.objects.get(id=track_id)
-    playlist.tracks.remove(track)
-    return Response({'message': 'Track removed successfully'}, status=status.HTTP_200_OK)
+def unfollow_user(request, user_id):
+    follower = request.user
+    following = User.objects.get(id=user_id)
+    subscription = UserSubscription.objects.filter(follower=follower, following=following)
+    if subscription.exists():
+        subscription.delete()
+        return Response({'message': 'Unfollowed user'}, status=status.HTTP_200_OK)
+    return Response({'message': 'Not following this user'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def get_following_tracks(request):
+    following_users = request.user.following.values_list('following', flat=True)
+    tracks = Track.objects.filter(added_by__in=following_users).order_by('-id')
+    data = [{'id': track.id, 'title': track.title, 'artist': track.artist} for track in tracks]
+    return Response(data, status=status.HTTP_200_OK)
 
 @api_view(['PATCH'])
 @permission_classes([permissions.IsAuthenticated])
@@ -44,29 +62,3 @@ def update_playlist_name(request, playlist_id):
     playlist.name = new_name
     playlist.save()
     return Response({'message': 'Playlist updated successfully'}, status=status.HTTP_200_OK)
-
-@api_view(['DELETE'])
-@permission_classes([permissions.IsAuthenticated])
-def delete_playlist(request, playlist_id):
-    playlist = Playlist.objects.get(id=playlist_id)
-    playlist.delete()
-    return Response({'message': 'Playlist deleted successfully'}, status=status.HTTP_200_OK)
-
-@api_view(['POST'])
-def register_user(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-    if User.objects.filter(username=username).exists():
-        return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
-    user = User.objects.create_user(username=username, password=password)
-    return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
-
-@api_view(['POST'])
-def login_user(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-    user = User.objects.filter(username=username).first()
-    if user and user.check_password(password):
-        refresh = RefreshToken.for_user(user)
-        return Response({'refresh': str(refresh), 'access': str(refresh.access_token)})
-    return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)

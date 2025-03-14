@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import TrackList from './components/TrackList';
 import Playlist from './components/Playlist';
+import History from './components/History';
+import Recommendations from './components/Recommendations';
+import FollowingTracks from './components/FollowingTracks';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
@@ -19,7 +22,7 @@ const App = () => {
 
     return (
         <div>
-            <h1>Music Streaming App</h1>
+            <h1>SoundFlow</h1>
             {!token ? (
                 <>
                     <Login setToken={setToken} />
@@ -27,8 +30,11 @@ const App = () => {
                 </>
             ) : (
                 <>
-                    <TrackList tracks={tracks} />
+                    <TrackList tracks={tracks} token={token} />
                     <Playlist token={token} tracks={tracks} />
+                    <History token={token} />
+                    <Recommendations token={token} />
+                    <FollowingTracks token={token} />
                 </>
             )}
         </div>
