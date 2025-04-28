@@ -15,6 +15,7 @@ import PlaylistDetail from './pages/PlaylistDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Settings from './pages/Settings';
+import MusicPage from './pages/MusicPage';
 import Player from './components/player/Player';
 import { useSelector, useDispatch } from 'react-redux';
 import { restoreSession } from './store/slices/authSlice';
@@ -121,6 +122,7 @@ const AppContent = () => {
                 <>
                   <NavLink to="/search">Search</NavLink>
                   <NavLink to="/library">Library</NavLink>
+                  <NavLink to="/music">Music</NavLink>
                   <UserInfo>
                     <NavLink to="/settings">Settings</NavLink>
                     <Username>{user?.username}</Username>
@@ -175,6 +177,16 @@ const AppContent = () => {
                 <ProtectedRoute>
                   <Layout>
                     <Library />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/music"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <MusicPage />
                   </Layout>
                 </ProtectedRoute>
               }
