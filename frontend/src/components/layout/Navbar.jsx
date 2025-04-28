@@ -186,7 +186,7 @@ function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const isMobile = useMediaQuery('(max-width: 768px)');
   const user = useSelector(state => state.auth.user);
-  const notifications = useSelector(state => state.notifications.unread);
+  const notifications = useSelector(state => state.notifications?.unread || 0);
 
   const handleSearch = useCallback((e) => {
     if (e.key === 'Enter' && searchQuery.trim()) {

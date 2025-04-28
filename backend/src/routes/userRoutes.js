@@ -3,6 +3,9 @@ const router = express.Router();
 const { auth } = require('../middleware/auth');
 const userController = require('../controllers/userController');
 
+// Current user routes
+router.get('/me', auth, userController.getCurrentUser);
+
 // Profile routes
 router.get('/profile/:id', auth, userController.getProfile);
 router.put('/profile', auth, userController.updateProfile);

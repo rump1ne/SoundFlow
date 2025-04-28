@@ -217,38 +217,31 @@ const CreatePlaylistButton = styled.button`
 `;
 
 const PlaylistList = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.sm};
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xs};
+  margin-top: ${({ theme }) => theme.spacing.md};
 `;
 
 const PlaylistLink = styled(Link)`
-  display: block;
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: ${({ theme, $isActive }) =>
+    $isActive ? theme.colors.text.primary : theme.colors.text.secondary};
   text-decoration: none;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   transition: ${({ theme }) => theme.transitions.default};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 
   &:hover {
     color: ${({ theme }) => theme.colors.text.primary};
     background-color: ${({ theme }) => theme.colors.background.hover};
   }
-`;
 
-const CreatePlaylistDialog = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: ${({ theme }) => theme.colors.background.navbar};
-  padding: ${({ theme }) => theme.spacing.lg};
-  border-radius: ${({ theme }) => theme.borderRadius.lg};
-  box-shadow: ${({ theme }) => theme.shadows.lg};
-  width: 100%;
-  max-width: 400px;
-  z-index: 1100;
+  ${({ $isActive, theme }) =>
+    $isActive &&
+    `
+    background-color: ${theme.colors.background.hover};
+    font-weight: ${theme.typography.fontWeight.medium};
+  `}
 `;
 
 const Overlay = styled.div`
@@ -257,26 +250,35 @@ const Overlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
+  background-color: ${({ theme }) => theme.colors.background.overlay};
+  z-index: ${({ theme }) => theme.zIndex.modal};
+`;
+
+const CreatePlaylistDialog = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: ${({ theme }) => theme.colors.background.paper};
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  padding: ${({ theme }) => theme.spacing.lg};
+  z-index: ${({ theme }) => theme.zIndex.modal + 1};
+  min-width: 300px;
 `;
 
 const DialogTitle = styled.h2`
-  font-size: ${({ theme }) => theme.typography.fontSize.xl};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
   color: ${({ theme }) => theme.colors.text.primary};
-  margin: 0 0 ${({ theme }) => theme.spacing.lg};
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: ${({ theme }) => theme.spacing.sm};
   margin-bottom: ${({ theme }) => theme.spacing.md};
-  border: 1px solid ${({ theme }) => theme.colors.border.default};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
   background-color: ${({ theme }) => theme.colors.background.card};
+  border: 1px solid ${({ theme }) => theme.colors.border.default};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
   color: ${({ theme }) => theme.colors.text.primary};
-  font-size: ${({ theme }) => theme.typography.fontSize.base};
 
   &:focus {
     outline: none;
@@ -304,36 +306,34 @@ const TextArea = styled.textarea`
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: ${({ theme }) => theme.spacing.md};
   justify-content: flex-end;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 const Button = styled.button`
-  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.lg};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-  cursor: pointer;
   transition: ${({ theme }) => theme.transitions.default};
 
-  ${props => props.$primary ? `
-    background-color: ${({ theme }) => theme.colors.primary};
-    color: white;
-    border: none;
-
-    &:hover {
-      opacity: 0.9;
-    }
-  ` : `
-    background-color: transparent;
-    color: ${({ theme }) => theme.colors.text.secondary};
-    border: 1px solid ${({ theme }) => theme.colors.border.default};
-
-    &:hover {
-      color: ${({ theme }) => theme.colors.text.primary};
-      background-color: ${({ theme }) => theme.colors.background.hover};
-    }
-  `}
+  ${({ $variant, theme }) =>
+    $variant === 'primary'
+      ? `
+        background-color: ${theme.colors.primary};
+        color: white;
+        
+        &:hover {
+          opacity: 0.9;
+        }
+      `
+      : `
+        background-color: ${theme.colors.secondary};
+        color: white;
+        
+        &:hover {
+          opacity: 0.9;
+        }
+      `}
 `;
 
 function Sidebar() {
@@ -342,7 +342,7 @@ function Sidebar() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [playlistName, setPlaylistName] = useState('');
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const playlists = useSelector((state) => state.playlists.items);
+  const playlists = useSelector((state) => state.playlists?.playlists || []);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const toggleMobileSidebar = useCallback(() => {
@@ -421,16 +421,6 @@ function Sidebar() {
 
           <NavList>
             <NavItem>
-              <NavLink to="/liked" $isActive={location.pathname === '/liked'}>
-                {location.pathname === '/liked' ? (
-                  <HeartIconSolid />
-                ) : (
-                  <HeartIcon />
-                )}
-                Liked Songs
-              </NavLink>
-            </NavItem>
-            <NavItem>
               <NavLink
                 to="/bookmarks"
                 $isActive={location.pathname === '/bookmarks'}
@@ -453,6 +443,13 @@ function Sidebar() {
             Create Playlist
           </CreatePlaylistButton>
           <PlaylistList>
+            <PlaylistLink
+              to="/liked"
+              $isActive={location.pathname === '/liked'}
+            >
+              <HeartIcon style={{ width: '16px', height: '16px', marginRight: '8px' }} />
+              Liked Songs
+            </PlaylistLink>
             {playlists.map((playlist) => (
               <PlaylistLink
                 key={playlist.id}

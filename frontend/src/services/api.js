@@ -1,12 +1,11 @@
 import axios from 'axios';
-
-const API_URL = 'http://localhost:5000/api';
+import { config } from '../config';
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: config.apiUrl,
   headers: {
-    'Content-Type': 'application/json',
-  },
+    'Content-Type': 'application/json'
+  }
 });
 
 // Add a request interceptor to add the auth token to requests
@@ -37,10 +36,45 @@ api.interceptors.response.use(
   }
 );
 
+export const fetchTracks = async () => {
+  const response = await api.get('/api/tracks');
+  return response.data;
+};
+
+export const fetchPlaylists = async () => {
+  const response = await api.get('/api/playlists');
+  return response.data;
+};
+
+export const createPlaylist = async (playlistData) => {
+  const response = await api.post('/api/playlists', playlistData);
+  return response.data;
+};
+
+export const updatePlaylist = async (playlistId, playlistData) => {
+  const response = await api.put(`/api/playlists/${playlistId}`, playlistData);
+  return response.data;
+};
+
+export const deletePlaylist = async (playlistId) => {
+  const response = await api.delete(`/api/playlists/${playlistId}`);
+  return response.data;
+};
+
+export const addTrackToPlaylist = async (playlistId, trackId) => {
+  const response = await api.post(`/api/playlists/${playlistId}/tracks`, { trackId });
+  return response.data;
+};
+
+export const removeTrackFromPlaylist = async (playlistId, trackId) => {
+  const response = await api.delete(`/api/playlists/${playlistId}/tracks/${trackId}`);
+  return response.data;
+};
+
 export const authAPI = {
   login: async (credentials) => {
     try {
-      const response = await api.post('/auth/login', credentials);
+      const response = await api.post('/api/auth/login', credentials);
       if (response.data.success && response.data.data) {
         return response;
       }
@@ -55,33 +89,29 @@ export const authAPI = {
       }
     }
   },
-  register: (userData) => api.post('/auth/register', userData),
-  getCurrentUser: () => api.get('/auth/me'),
+  register: (userData) => api.post('/api/auth/register', userData),
+  getCurrentUser: () => api.get('/api/auth/me'),
 };
 
 export const playlistAPI = {
-  getPlaylists: () => api.get('/playlists'),
-  getPlaylist: (id) => api.get(`/playlists/${id}`),
-  createPlaylist: (data) => api.post('/playlists', data),
-  updatePlaylist: (id, data) => api.put(`/playlists/${id}`, data),
-  deletePlaylist: (id) => api.delete(`/playlists/${id}`),
-  addTrack: (playlistId, trackId) => api.post(`/playlists/${playlistId}/tracks/${trackId}`),
-  removeTrack: (playlistId, trackId) => api.delete(`/playlists/${playlistId}/tracks/${trackId}`),
+  getPlaylist: (id) => api.get(`/api/playlists/${id}`),
+  updatePlaylist: (id, data) => api.put(`/api/playlists/${id}`, data),
+  deletePlaylist: (id) => api.delete(`/api/playlists/${id}`),
+  removeTrack: (playlistId, trackId) => api.delete(`/api/playlists/${playlistId}/tracks/${trackId}`),
 };
 
 export const trackAPI = {
-  getTracks: () => api.get('/tracks'),
-  getTrack: (id) => api.get(`/tracks/${id}`),
-  searchTracks: (query) => api.get(`/tracks/search?q=${query}`),
-  likeTrack: (id) => api.post(`/tracks/${id}/like`),
-  unlikeTrack: (id) => api.delete(`/tracks/${id}/like`),
+  getTrack: (id) => api.get(`/api/tracks/${id}`),
+  searchTracks: (query) => api.get(`/api/tracks/search?q=${query}`),
+  likeTrack: (id) => api.post(`/api/tracks/${id}/like`),
+  unlikeTrack: (id) => api.delete(`/api/tracks/${id}/like`),
 };
 
 export const userAPI = {
-  getProfile: (id) => api.get(`/users/${id}`),
-  updateProfile: (id, data) => api.put(`/users/${id}`, data),
-  followUser: (id) => api.post(`/users/${id}/follow`),
-  unfollowUser: (id) => api.delete(`/users/${id}/follow`),
+  getProfile: (id) => api.get(`/api/users/${id}`),
+  updateProfile: (id, data) => api.put(`/api/users/${id}`, data),
+  followUser: (id) => api.post(`/api/users/${id}/follow`),
+  unfollowUser: (id) => api.delete(`/api/users/${id}/follow`),
 };
 
 export default api; 

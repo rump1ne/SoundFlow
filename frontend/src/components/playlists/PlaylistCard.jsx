@@ -165,10 +165,10 @@ const PlaylistCard = ({ playlist }) => {
 
   const handlePlay = (e) => {
     e.stopPropagation();
-    if (currentTrack?.id === playlist.tracks[0]?.id) {
+    if (currentTrack?.id === playlist.Tracks?.[0]?.id) {
       dispatch(togglePlay());
-    } else {
-      dispatch(setCurrentTrack(playlist.tracks[0]));
+    } else if (playlist.Tracks?.length > 0) {
+      dispatch(setCurrentTrack(playlist.Tracks[0]));
     }
   };
 
@@ -177,40 +177,43 @@ const PlaylistCard = ({ playlist }) => {
     // TODO: Implement playlist options menu
   };
 
+  // Get the first track's album cover as the playlist cover if no custom cover is set
+  const coverUrl = playlist.coverUrl || 
+    (playlist.Tracks?.[0]?.Album?.imageUrl) || 
+    'https://via.placeholder.com/200';
+
+  // Get track count
+  const trackCount = playlist.Tracks?.length || 0;
+
+  // Get creator name
+  const creatorName = playlist.User?.username || 'Unknown Creator';
+
   return (
     <Card onClick={handleClick}>
       <CoverContainer>
         <CoverArt>
-          <Image src={playlist.coverUrl} alt={playlist.title} />
+          <Image src={coverUrl} alt={playlist.title} />
         </CoverArt>
-        <PlayButton onClick={handlePlay}>
-          {isPlaying && currentTrack?.id === playlist.tracks[0]?.id ? (
-            <PauseIcon />
-          ) : (
-            <PlayIcon />
-          )}
-        </PlayButton>
+        {trackCount > 0 && (
+          <PlayButton onClick={handlePlay}>
+            {isPlaying && currentTrack?.id === playlist.Tracks[0]?.id ? (
+              <PauseIcon />
+            ) : (
+              <PlayIcon />
+            )}
+          </PlayButton>
+        )}
         <OptionsButton onClick={handleOptionsClick}>
           <EllipsisHorizontalIcon />
         </OptionsButton>
       </CoverContainer>
       <Content>
         <Title>{playlist.title}</Title>
-        <Description>{playlist.description}</Description>
+        <Description>{playlist.description || `A playlist by ${creatorName}`}</Description>
         <Meta>
-          <span>{playlist.tracks.length} tracks</span>
-          {playlist.collaborators?.length > 0 && (
-            <Collaborators>
-              {playlist.collaborators.map((user) => (
-                <Avatar
-                  key={user.id}
-                  src={user.avatarUrl}
-                  alt={user.username}
-                  title={user.username}
-                />
-              ))}
-            </Collaborators>
-          )}
+          <span>{trackCount} tracks</span>
+          <span>•</span>
+          <span>By {creatorName}</span>
         </Meta>
       </Content>
     </Card>

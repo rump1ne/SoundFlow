@@ -363,10 +363,22 @@ const formatDuration = (seconds) => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
-const PlaylistDetail = () => {
+const PlaylistDetail = ({ isLikedSongs }) => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const playlist = useSelector(state => state.playlists.playlists.find(p => p.id === id));
+  const playlist = useSelector(state => 
+    isLikedSongs 
+      ? { 
+          id: 'liked',
+          name: 'Liked Songs',
+          description: 'Your favorite tracks',
+          coverUrl: 'https://picsum.photos/200?random=liked',
+          tracks: state.playlists.likedSongs,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+      : state.playlists.playlists.find(p => p.id === id)
+  );
   const currentTrack = useSelector(state => state.player.currentTrack);
   const isPlaying = useSelector(state => state.player.isPlaying);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -381,11 +393,11 @@ const PlaylistDetail = () => {
   }, [dispatch, playlist]);
 
   useEffect(() => {
-    if (playlist) {
+    if (playlist && !isLikedSongs) {
       setEditName(playlist.name);
       setEditDescription(playlist.description);
     }
-  }, [playlist]);
+  }, [playlist, isLikedSongs]);
 
   if (!playlist) {
     return <div>Playlist not found</div>;
@@ -406,7 +418,9 @@ const PlaylistDetail = () => {
   };
 
   const handleEdit = () => {
-    setShowEditDialog(true);
+    if (!isLikedSongs) {
+      setShowEditDialog(true);
+    }
   };
 
   const handleCloseEdit = () => {
@@ -416,7 +430,7 @@ const PlaylistDetail = () => {
   };
 
   const handleSaveEdit = () => {
-    if (editName.trim()) {
+    if (editName.trim() && !isLikedSongs) {
       dispatch(updatePlaylist({
         id: playlist.id,
         name: editName.trim(),
@@ -427,18 +441,20 @@ const PlaylistDetail = () => {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this playlist?')) {
+    if (!isLikedSongs && window.confirm('Are you sure you want to delete this playlist?')) {
       dispatch(deletePlaylist(playlist.id));
       // TODO: Navigate back to playlists page
     }
   };
 
   const handleRemoveTrack = (trackId) => {
-    dispatch(removeTrackFromPlaylist({ playlistId: playlist.id, trackId }));
+    if (!isLikedSongs) {
+      dispatch(removeTrackFromPlaylist({ playlistId: playlist.id, trackId }));
+    }
   };
 
   const handleDragEnd = (result) => {
-    if (!result.destination) return;
+    if (!result.destination || isLikedSongs) return;
 
     const sourceIndex = result.source.index;
     const destinationIndex = result.destination.index;
@@ -453,7 +469,9 @@ const PlaylistDetail = () => {
   };
 
   const handleOpenSearch = () => {
-    setShowSearchDialog(true);
+    if (!isLikedSongs) {
+      setShowSearchDialog(true);
+    }
   };
 
   const handleCloseSearch = () => {
@@ -467,7 +485,7 @@ const PlaylistDetail = () => {
           <img src={playlist.coverUrl} alt={playlist.name} />
         </CoverArt>
         <Info>
-          <PlaylistType>Playlist</PlaylistType>
+          <PlaylistType>{isLikedSongs ? 'Liked Songs' : 'Playlist'}</PlaylistType>
           <Title>{playlist.name}</Title>
           <Description>{playlist.description}</Description>
           <Meta>
@@ -486,16 +504,20 @@ const PlaylistDetail = () => {
             <PlayIcon />
           )}
         </PlayButton>
-        <IconButton onClick={handleEdit}>
-          <PencilIcon />
-        </IconButton>
-        <IconButton onClick={handleDelete}>
-          <TrashIcon />
-        </IconButton>
-        <AddTracksButton onClick={handleOpenSearch}>
-          <PlusIcon />
-          Add tracks
-        </AddTracksButton>
+        {!isLikedSongs && (
+          <>
+            <IconButton onClick={handleEdit}>
+              <PencilIcon />
+            </IconButton>
+            <IconButton onClick={handleDelete}>
+              <TrashIcon />
+            </IconButton>
+            <AddTracksButton onClick={handleOpenSearch}>
+              <PlusIcon />
+              Add tracks
+            </AddTracksButton>
+          </>
+        )}
       </Controls>
 
       <TracksContainer>
@@ -522,6 +544,7 @@ const PlaylistDetail = () => {
                     key={track.id}
                     draggableId={track.id}
                     index={index}
+                    isDragDisabled={isLikedSongs}
                   >
                     {(provided, snapshot) => (
                       <TrackItem
@@ -530,9 +553,11 @@ const PlaylistDetail = () => {
                         isDragging={snapshot.isDragging}
                         isPlaying={currentTrack?.id === track.id}
                       >
-                        <div {...provided.dragHandleProps}>
-                          <DragHandle />
-                        </div>
+                        {!isLikedSongs && (
+                          <div {...provided.dragHandleProps}>
+                            <DragHandle />
+                          </div>
+                        )}
                         <TrackNumber>{index + 1}</TrackNumber>
                         <TrackInfo onClick={() => handleTrackClick(track)}>
                           <TrackCover src={track.cover} alt={track.title} />
@@ -555,7 +580,7 @@ const PlaylistDetail = () => {
         </DragDropContext>
       </TracksContainer>
 
-      {showEditDialog && (
+      {showEditDialog && !isLikedSongs && (
         <>
           <Overlay onClick={handleCloseEdit} />
           <EditDialog>
@@ -580,7 +605,7 @@ const PlaylistDetail = () => {
         </>
       )}
 
-      {showSearchDialog && (
+      {showSearchDialog && !isLikedSongs && (
         <SearchDialog
           playlistId={playlist.id}
           onClose={handleCloseSearch}

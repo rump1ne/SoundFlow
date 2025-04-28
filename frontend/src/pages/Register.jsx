@@ -2,6 +2,113 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { loginSuccess } from '../store/slices/authSlice';
+import styled from 'styled-components';
+import { theme } from '../styles/theme';
+
+const RegisterContainer = styled.div`
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: ${({ theme }) => theme.colors.background.default};
+  padding: ${({ theme }) => theme.spacing.xl};
+`;
+
+const RegisterCard = styled.div`
+  width: 100%;
+  max-width: 400px;
+  background-color: ${({ theme }) => theme.colors.background.paper};
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  padding: ${({ theme }) => theme.spacing.xl};
+  box-shadow: ${({ theme }) => theme.shadows.lg};
+`;
+
+const Title = styled.h1`
+  color: ${({ theme }) => theme.colors.text.primary};
+  font-size: ${({ theme }) => theme.typography.h4.fontSize};
+  font-weight: ${({ theme }) => theme.typography.h4.fontWeight};
+  text-align: center;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+`;
+
+const Subtitle = styled.p`
+  color: ${({ theme }) => theme.colors.text.secondary};
+  font-size: ${({ theme }) => theme.typography.body1.fontSize};
+  text-align: center;
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const Input = styled.input`
+  width: 100%;
+  padding: ${({ theme }) => theme.spacing.md};
+  border: 1px solid ${({ theme }) => theme.colors.accent.main};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  background-color: ${({ theme }) => theme.colors.background.default};
+  color: ${({ theme }) => theme.colors.text.primary};
+  font-size: ${({ theme }) => theme.typography.body1.fontSize};
+  transition: all ${({ theme }) => theme.transitions.duration.standard}ms;
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary.main};
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary.light}33;
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.text.secondary};
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+`;
+
+const Button = styled.button`
+  width: 100%;
+  padding: ${({ theme }) => theme.spacing.md};
+  background-color: ${({ theme }) => theme.colors.primary.main};
+  color: white;
+  border: none;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  font-size: ${({ theme }) => theme.typography.body1.fontSize};
+  font-weight: 500;
+  cursor: pointer;
+  transition: all ${({ theme }) => theme.transitions.duration.standard}ms;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primary.dark};
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+`;
+
+const ErrorMessage = styled.div`
+  color: ${({ theme }) => theme.colors.error.main};
+  font-size: ${({ theme }) => theme.typography.body2.fontSize};
+  text-align: center;
+  margin-top: ${({ theme }) => theme.spacing.sm};
+`;
+
+const LinkText = styled(Link)`
+  color: ${({ theme }) => theme.colors.primary.main};
+  text-decoration: none;
+  font-weight: 500;
+  transition: color ${({ theme }) => theme.transitions.duration.standard}ms;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary.dark};
+  }
+`;
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -31,7 +138,6 @@ const Register = () => {
     }
 
     try {
-      // TODO: Replace with actual API call
       const response = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: {
@@ -58,104 +164,51 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-400">
-            Or{' '}
-            <Link
-              to="/login"
-              className="font-medium text-blue-500 hover:text-blue-400"
-            >
-              sign in to your account
-            </Link>
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="username" className="sr-only">
-                Username
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                value={formData.username}
-                onChange={handleChange}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 bg-gray-800 placeholder-gray-400 text-white rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Username"
-              />
-            </div>
-            <div>
-              <label htmlFor="email-address" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 bg-gray-800 placeholder-gray-400 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 bg-gray-800 placeholder-gray-400 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-              />
-            </div>
-            <div>
-              <label htmlFor="confirm-password" className="sr-only">
-                Confirm Password
-              </label>
-              <input
-                id="confirm-password"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 bg-gray-800 placeholder-gray-400 text-white rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm Password"
-              />
-            </div>
-          </div>
-
-          {error && (
-            <div className="text-red-500 text-sm text-center">{error}</div>
-          )}
-
-          <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Create Account
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <RegisterContainer>
+      <RegisterCard>
+        <Title>Create your account</Title>
+        <Subtitle>
+          Already have an account?{' '}
+          <LinkText to="/login">Sign in</LinkText>
+        </Subtitle>
+        <Form onSubmit={handleSubmit}>
+          <Input
+            type="text"
+            name="username"
+            placeholder="Username"
+            value={formData.username}
+            onChange={handleChange}
+            required
+          />
+          <Input
+            type="email"
+            name="email"
+            placeholder="Email address"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+          <Input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+          <Input
+            type="password"
+            name="confirmPassword"
+            placeholder="Confirm Password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            required
+          />
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          <Button type="submit">Create Account</Button>
+        </Form>
+      </RegisterCard>
+    </RegisterContainer>
   );
 };
 

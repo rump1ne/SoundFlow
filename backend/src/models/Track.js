@@ -11,13 +11,21 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    artistName: {
-      type: DataTypes.STRING,
-      allowNull: false
+    artistId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: 'Artists',
+        key: 'id'
+      }
     },
-    albumName: {
-      type: DataTypes.STRING,
-      allowNull: true
+    albumId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: 'Albums',
+        key: 'id'
+      }
     },
     duration: {
       type: DataTypes.INTEGER,
@@ -50,7 +58,21 @@ module.exports = (sequelize) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     }
+  }, {
+    timestamps: true,
+    underscored: true
   });
+
+  Track.associate = (models) => {
+    Track.belongsTo(models.Artist, {
+      foreignKey: 'artistId',
+      as: 'artist'
+    });
+    Track.belongsTo(models.Album, {
+      foreignKey: 'albumId',
+      as: 'album'
+    });
+  };
 
   return Track;
 }; 

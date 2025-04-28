@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
@@ -12,12 +12,12 @@ import Home from './pages/Home';
 import Search from './pages/Search';
 import Library from './pages/Library';
 import PlaylistDetail from './pages/PlaylistDetail';
-import LikedSongs from './pages/LikedSongs';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Settings from './pages/Settings';
 import Player from './components/player/Player';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { restoreSession } from './store/slices/authSlice';
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -96,7 +96,16 @@ const MainContent = styled.main`
 `;
 
 const AppContent = () => {
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { isAuthenticated, user, loading } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(restoreSession());
+  }, [dispatch]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Router>
@@ -112,7 +121,6 @@ const AppContent = () => {
                 <>
                   <NavLink to="/search">Search</NavLink>
                   <NavLink to="/library">Library</NavLink>
-                  <NavLink to="/liked-songs">Liked Songs</NavLink>
                   <UserInfo>
                     <NavLink to="/settings">Settings</NavLink>
                     <Username>{user?.username}</Username>
@@ -131,7 +139,13 @@ const AppContent = () => {
           <Routes>
             <Route
               path="/"
-              element={isAuthenticated ? <Home /> : <Navigate to="/login" />}
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Home />
+                  </Layout>
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/login"
@@ -176,11 +190,11 @@ const AppContent = () => {
               }
             />
             <Route
-              path="/liked-songs"
+              path="/liked"
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <LikedSongs />
+                    <PlaylistDetail isLikedSongs />
                   </Layout>
                 </ProtectedRoute>
               }

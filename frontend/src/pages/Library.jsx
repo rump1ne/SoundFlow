@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   HeartIcon,
   ListBulletIcon,
@@ -8,6 +8,8 @@ import {
   MagnifyingGlassIcon,
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
+import { setTracks, setPlaylists, setLoading, setError } from '../store/slices/contentSlice';
+import { fetchTracks, fetchPlaylists } from '../services/api';
 import TrackCard from '../components/tracks/TrackCard';
 import PlaylistCard from '../components/playlists/PlaylistCard';
 
@@ -162,8 +164,29 @@ const EmptyState = styled.div`
 const Library = () => {
   const [activeTab, setActiveTab] = useState('playlists');
   const [searchQuery, setSearchQuery] = useState('');
+  const dispatch = useDispatch();
   const { currentTrack, isPlaying } = useSelector((state) => state.player);
-  const { tracks, playlists } = useSelector((state) => state.content);
+  const { tracks, playlists, loading, error } = useSelector((state) => state.content);
+
+  useEffect(() => {
+    const loadContent = async () => {
+      dispatch(setLoading(true));
+      try {
+        const [tracksData, playlistsData] = await Promise.all([
+          fetchTracks(),
+          fetchPlaylists()
+        ]);
+        dispatch(setTracks(tracksData));
+        dispatch(setPlaylists(playlistsData));
+      } catch (err) {
+        dispatch(setError(err.message));
+      } finally {
+        dispatch(setLoading(false));
+      }
+    };
+
+    loadContent();
+  }, [dispatch]);
 
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
@@ -172,7 +195,7 @@ const Library = () => {
   const filteredTracks = useMemo(() => 
     tracks.filter(track => 
       track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      track.artist.toLowerCase().includes(searchQuery.toLowerCase())
+      track.artist?.toLowerCase().includes(searchQuery.toLowerCase())
     ),
     [tracks, searchQuery]
   );
@@ -180,12 +203,29 @@ const Library = () => {
   const filteredPlaylists = useMemo(() =>
     playlists.filter(playlist =>
       playlist.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      playlist.description.toLowerCase().includes(searchQuery.toLowerCase())
+      playlist.description?.toLowerCase().includes(searchQuery.toLowerCase())
     ),
     [playlists, searchQuery]
   );
 
   const renderContent = () => {
+    if (loading) {
+      return (
+        <EmptyState>
+          <h3>Loading...</h3>
+        </EmptyState>
+      );
+    }
+
+    if (error) {
+      return (
+        <EmptyState>
+          <h3>Error loading content</h3>
+          <p>{error}</p>
+        </EmptyState>
+      );
+    }
+
     const items = activeTab === 'playlists' ? filteredPlaylists : filteredTracks;
     const isEmpty = items.length === 0;
 
@@ -198,44 +238,17 @@ const Library = () => {
       );
     }
 
-    switch (activeTab) {
-      case 'playlists':
-        return (
-          <Grid>
-            {filteredPlaylists.map((playlist) => (
-              <PlaylistCard key={playlist.id} playlist={playlist} />
-            ))}
-          </Grid>
-        );
-      case 'liked':
-        return (
-          <List>
-            {filteredTracks.map((track) => (
-              <TrackCard
-                key={track.id}
-                track={track}
-                isPlaying={isPlaying && currentTrack?.id === track.id}
-                isCurrentTrack={currentTrack?.id === track.id}
-              />
-            ))}
-          </List>
-        );
-      case 'recent':
-        return (
-          <List>
-            {filteredTracks.slice().reverse().map((track) => (
-              <TrackCard
-                key={track.id}
-                track={track}
-                isPlaying={isPlaying && currentTrack?.id === track.id}
-                isCurrentTrack={currentTrack?.id === track.id}
-              />
-            ))}
-          </List>
-        );
-      default:
-        return null;
-    }
+    return (
+      <Grid>
+        {items.map(item => (
+          activeTab === 'playlists' ? (
+            <PlaylistCard key={item.id} playlist={item} />
+          ) : (
+            <TrackCard key={item.id} track={item} />
+          )
+        ))}
+      </Grid>
+    );
   };
 
   return (

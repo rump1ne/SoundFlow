@@ -39,7 +39,7 @@ const initialState = {
 const playlistsSlice = createSlice({
   name: 'playlists',
   initialState,
-  reducers: {
+  reducer: {
     setCurrentPlaylist: (state, action) => {
       state.currentPlaylist = action.payload;
     },

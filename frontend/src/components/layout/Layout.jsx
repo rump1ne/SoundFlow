@@ -2,7 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 import Navbar from './Navbar.jsx';
 import Sidebar from './Sidebar.jsx';
-import GlobalStyles from '../../styles/globalStyles';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useSelector } from 'react-redux';
 
@@ -41,7 +40,6 @@ const Layout = ({ children }) => {
 
   return (
     <LayoutContainer>
-      <GlobalStyles />
       <Navbar />
       <Sidebar />
       <MainContent $isMobile={isMobile}>

@@ -154,12 +154,17 @@ const TrackCard = ({ track, isPlaying, isCurrentTrack, onPlay, onLike, onOptions
     onLike?.(track);
   }, [track, onLike]);
 
+  // Get artist name from the Artist association
+  const artistName = track.Artist?.name || 'Unknown Artist';
+  // Get album cover from the Album association
+  const albumCover = track.Album?.imageUrl || 'https://via.placeholder.com/48';
+
   return (
     <Card>
-      <CoverArt src={track.coverUrl} alt={`${track.title} cover art`} />
+      <CoverArt src={albumCover} alt={`${track.title} cover art`} />
       <TrackInfo>
         <Title>{track.title}</Title>
-        <Artist>{track.artist}</Artist>
+        <Artist>{artistName}</Artist>
       </TrackInfo>
       <Controls className="controls" $isCurrentTrack={isCurrentTrack}>
         <IconButton

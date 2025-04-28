@@ -1,4 +1,4 @@
-const { Playlist, Track, User } = require('../models');
+const { Playlist, Track, User, Album, Artist } = require('../models');
 
 // Get all playlists with pagination
 exports.getPlaylists = async (req, res) => {
@@ -10,8 +10,27 @@ exports.getPlaylists = async (req, res) => {
     const { count, rows } = await Playlist.findAndCountAll({
       where: { isPublic: true },
       include: [
-        { model: User, as: 'user', attributes: ['id', 'username', 'avatar'] },
-        { model: Track, as: 'tracks', attributes: ['id', 'title', 'artist', 'coverArt'] }
+        { 
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'avatar'] 
+        },
+        { 
+          model: Track,
+          as: 'tracks',
+          include: [
+            {
+              model: Album,
+              as: 'album',
+              attributes: ['id', 'title', 'imageUrl']
+            },
+            {
+              model: Artist,
+              as: 'artist',
+              attributes: ['id', 'name']
+            }
+          ]
+        }
       ],
       limit,
       offset,
@@ -42,8 +61,27 @@ exports.getPlaylist = async (req, res) => {
   try {
     const playlist = await Playlist.findByPk(req.params.id, {
       include: [
-        { model: User, as: 'user', attributes: ['id', 'username', 'avatar'] },
-        { model: Track, as: 'tracks' }
+        { 
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'avatar'] 
+        },
+        { 
+          model: Track,
+          as: 'tracks',
+          include: [
+            {
+              model: Album,
+              as: 'album',
+              attributes: ['id', 'title', 'imageUrl']
+            },
+            {
+              model: Artist,
+              as: 'artist',
+              attributes: ['id', 'name']
+            }
+          ]
+        }
       ]
     });
 

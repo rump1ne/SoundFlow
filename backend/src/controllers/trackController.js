@@ -1,4 +1,4 @@
-const { Track, Playlist, Album } = require('../models');
+const { Track, Playlist, Album, Artist } = require('../models');
 const { Op } = require('sequelize');
 
 // Get all tracks with pagination
@@ -11,7 +11,19 @@ exports.getTracks = async (req, res) => {
     const { count, rows } = await Track.findAndCountAll({
       limit,
       offset,
-      order: [['createdAt', 'DESC']]
+      order: [['createdAt', 'DESC']],
+      include: [
+        {
+          model: Album,
+          as: 'album',
+          attributes: ['id', 'title', 'imageUrl']
+        },
+        {
+          model: Artist,
+          as: 'artist',
+          attributes: ['id', 'name']
+        }
+      ]
     });
 
     res.json({
@@ -36,7 +48,20 @@ exports.getTracks = async (req, res) => {
 // Get a single track by ID
 exports.getTrack = async (req, res) => {
   try {
-    const track = await Track.findByPk(req.params.id);
+    const track = await Track.findByPk(req.params.id, {
+      include: [
+        {
+          model: Album,
+          as: 'album',
+          attributes: ['id', 'title', 'imageUrl']
+        },
+        {
+          model: Artist,
+          as: 'artist',
+          attributes: ['id', 'name']
+        }
+      ]
+    });
 
     if (!track) {
       return res.status(404).json({
@@ -160,16 +185,22 @@ exports.searchTracks = async (req, res) => {
     const tracks = await Track.findAll({
       where: {
         [Op.or]: [
-          { title: { [Op.iLike]: `%${query}%` } },
-          { artistName: { [Op.iLike]: `%${query}%` } },
-          { albumName: { [Op.iLike]: `%${query}%` } }
+          { title: { [Op.iLike]: `%${query}%` } }
         ]
       },
-      include: [{
-        model: Album,
-        as: 'album',
-        attributes: ['id', 'title', 'coverArt']
-      }]
+      include: [
+        {
+          model: Album,
+          as: 'album',
+          attributes: ['id', 'title', 'imageUrl']
+        },
+        {
+          model: Artist,
+          as: 'artist',
+          attributes: ['id', 'name'],
+          where: query ? { name: { [Op.iLike]: `%${query}%` } } : undefined
+        }
+      ]
     });
     res.json(tracks);
   } catch (error) {
@@ -181,11 +212,18 @@ exports.searchTracks = async (req, res) => {
 exports.getAllTracks = async (req, res) => {
   try {
     const tracks = await Track.findAll({
-      include: [{
-        model: Album,
-        as: 'album',
-        attributes: ['id', 'title', 'coverArt']
-      }]
+      include: [
+        {
+          model: Album,
+          as: 'album',
+          attributes: ['id', 'title', 'imageUrl']
+        },
+        {
+          model: Artist,
+          as: 'artist',
+          attributes: ['id', 'name']
+        }
+      ]
     });
     res.json(tracks);
   } catch (error) {

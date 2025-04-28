@@ -90,7 +90,7 @@ async function seedDatabase() {
       // Rock tracks
       { 
         title: 'Come Together', 
-        artistId: artists[0].id,
+        artistId: artists[0].id, 
         artistName: artists[0].name,
         albumId: albums[0].id,
         albumName: albums[0].title,
@@ -131,7 +131,7 @@ async function seedDatabase() {
       // Pop tracks
       { 
         title: 'Billie Jean', 
-        artistId: artists[1].id,
+        artistId: artists[1].id, 
         artistName: artists[1].name,
         albumId: albums[1].id,
         albumName: albums[1].title,
@@ -172,7 +172,7 @@ async function seedDatabase() {
       // Hip Hop tracks
       { 
         title: 'My Name Is', 
-        artistId: artists[2].id,
+        artistId: artists[2].id, 
         artistName: artists[2].name,
         albumId: albums[2].id,
         albumName: albums[2].title,
@@ -213,7 +213,7 @@ async function seedDatabase() {
       // Electronic tracks
       { 
         title: 'Get Lucky', 
-        artistId: artists[3].id,
+        artistId: artists[3].id, 
         artistName: artists[3].name,
         albumId: albums[3].id,
         albumName: albums[3].title,
@@ -254,7 +254,7 @@ async function seedDatabase() {
       // Jazz tracks
       { 
         title: 'So What', 
-        artistId: artists[4].id,
+        artistId: artists[4].id, 
         artistName: artists[4].name,
         albumId: albums[4].id,
         albumName: albums[4].title,
