@@ -88,4 +88,4 @@ module.exports = {
     await queryInterface.dropTable('PlaylistTracks');
     await queryInterface.dropTable('Playlists');
   }
-}; 
+};

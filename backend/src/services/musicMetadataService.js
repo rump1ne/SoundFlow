@@ -13,10 +13,11 @@ class MusicMetadataService {
     async initialize() {
         try {
             const data = await this.spotifyApi.clientCredentialsGrant();
+            console.log('Received access token:', data.body['access_token']); // Add logging to check the token
             this.spotifyApi.setAccessToken(data.body['access_token']);
             console.log('Spotify API initialized successfully');
         } catch (error) {
-            console.error('Error initializing Spotify API:', error);
+            console.error('Error initializing Spotify API:', error.body || error);  // Detailed logging for error response
             throw error;
         }
     }
